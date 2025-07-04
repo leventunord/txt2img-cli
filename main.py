@@ -1,7 +1,7 @@
 import argparse
 import cups
 import os
-from api import *
+from classes import *
 
 def main():
 
