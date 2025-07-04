@@ -2,6 +2,7 @@ import subprocess
 from datetime import datetime
 import pytesseract
 import cv2
+import numpy as np
 
 def scan():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -29,30 +30,44 @@ def scan():
         print("Scan Failed.")
         exit(1)
 
-    corrected_img, drawing = get_imgs()
+    corrected_img, drawing = parse_scanned()
     cv2.imwrite(f"./imgs/{scan_filename}", corrected_img)
     cv2.imwrite(f"./imgs/{drawing_filename}", drawing)
 
-    return None
+    return drawing_filename
     
-def get_imgs():
-    img_1 = cv2.imread("./tmp/temp_1.png", 0) # read in gray
-    img_2 = cv2.imread("./tmp/temp_2.png", 0) # read in gray
+def parse_scanned():
+    img = is_darker("./tmp/temp_1.png", "./tmp/temp_2.png")
 
-    corrected_img, gen_loc, angle = correct_orientation(img_1)
+    corrected_img, gen_loc, angle = correct_orientation(img)
+
     if angle == -1:
-        corrected_img, gen_loc, angle = correct_orientation(img_2)
+        raise RuntimeError("Cannot find 'generating'")
 
     drawing = crop_drawing_area(corrected_img, gen_loc)
     return corrected_img, drawing
+
+def is_darker(image_path1, image_path2):
+    img1 = cv2.imread(image_path1, 0)
+    img2 = cv2.imread(image_path2, 0)
+
+    sum1 = np.sum(img1)
+    sum2 = np.sum(img2)
+
+    if sum1 < sum2:
+        return img1
+    else:
+        return img2
         
-
-
 def find_generating_line(img):
-    d = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
+    """
+    OCR Helper
+    """
+    custom_config = r'--oem 3 --psm 6'
+    d = pytesseract.image_to_data(img, config=custom_config, output_type=pytesseract.Output.DICT, lang='eng')
 
     for i, text in enumerate(d["text"]):
-        if "generating" in text:
+        if "generating" in text.lower():
             x, y, w, h = d["left"][i], d["top"][i], d["width"][i], d["height"][i]
             return (x, y, w, h)
 
@@ -73,7 +88,12 @@ def correct_orientation(img):
 
 def crop_drawing_area(img, loc):
     x, y, w, h = loc
-    height = img.shape[0]
-    draw_y_start = y + h + 10  # add space
-    draw_crop = img[draw_y_start:height, :]
-    return draw_crop
+    height, width = img.shape
+
+    draw_y_start = y + 3 * h
+    draw_y_end = height - w
+    draw_x_start = x
+    draw_x_end = width - x
+
+    cropped = img[draw_y_start:draw_y_end, draw_x_start:draw_x_end]
+    return cropped
