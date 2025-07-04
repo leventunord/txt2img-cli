@@ -3,70 +3,50 @@ from pydantic import BaseModel
 import base64
 
 class Feedback(BaseModel):
+    detail: str
     is_satisfied: bool
     feedback: list[str]
+
 
 class Client:
     def __init__(self):
         self.client = OpenAI()
         self.prompts = read_prompt_files()
-        # self.initial_response = None
-        # self.trial_responses = []
-        self.last_response_id = None
-        self.current_response = None
+        self.history = [{
+            "role": "system", # TODO: maybe developer
+            "content": self.prompts["system"] 
+        }]
+        
+    def get_response(self, input, temperature=1.0):
+        self.history.append(input)
+
+        response = self.client.responses.parse(
+            model="gpt-4o",
+            input=self.history,
+            text_format=Feedback,
+            store=False,
+            # temperature=temperature
+        )
+
+        self.history += [{"role": el.role, "content": el.content} for el in response.output]
+        return response.output_text
         
 
     def get_initial(self):
-        self.current_response = self.client.responses.parse(
-            model="gpt-4o",
-            instructions=self.prompts["system"],
-            input=self.prompts["initial"],
-            text_format=Feedback
-        )
-
-        self.last_response_id = self.current_response.id
-        return self.current_response.output_text
+        return self.get_response(input_user_text(self.prompts["initial"]), temperature=1.5)
 
     def get_illusion(self, image_path):
-        self.current_response = self.client.responses.parse(
-            model="gpt-4o",
-            input=[input_user_text_image(self.prompts["illusion"], image_path)],
-            previous_response_id=self.last_response_id,
-            text_format=Feedback
-        )
-
-        self.last_response_id = self.current_response.id
-        return self.current_response.output_text
+        return self.get_response(input_user_text_image(self.prompts["illusion"], image_path))
 
     def get_feedback(self, image_path):
-        self.current_response = self.client.responses.parse(
-            model="gpt-4o",
-            input=[input_user_text_image(self.prompts["trial"], image_path)],
-            previous_response_id=self.last_response_id,
-            text_format=Feedback
-        )
+        return self.get_response(input_user_text_image(self.prompts["trial"], image_path))
 
-        self.last_response_id = self.current_response.id
-        return self.current_response.output_text
+    def get_last_try(self, image_path):
+        return self.get_response(input_user_text_image(self.prompts["last try"], image_path))
 
-    def get_fail(self):
-        self.current_response = self.client.responses.parse(
-            model="gpt-4o",
-            input=self.prompts["fail"],
-            previous_response_id=self.last_response_id,
-            text_format=Feedback
-        )
+    def get_fail(self, image_path):
+        return self.get_response(input_user_text_image(self.prompts["fail"], image_path))
 
-        self.last_response_id = self.current_response.id
-        return self.current_response.output_text
-
-
-
-
-
-class Conversation:
-    def __init__(self):
-        pass
 
 def read_prompt_files(root_path="./asset/prompts/"):
     with open(f"{root_path}system.txt", "r", encoding="utf-8") as system_prompt_file:
@@ -81,6 +61,9 @@ def read_prompt_files(root_path="./asset/prompts/"):
     with open(f"{root_path}trial.txt", "r", encoding="utf-8") as trial_prompt_file:
         trial_prompt = trial_prompt_file.read()
 
+    with open(f"{root_path}last_try.txt", "r", encoding="utf-8") as last_try_prompt_file:
+        last_try_prompt = last_try_prompt_file.read()
+
     with open(f"{root_path}fail.txt", "r", encoding="utf-8") as fail_prompt_file:
         fail_prompt = fail_prompt_file.read()
 
@@ -89,26 +72,9 @@ def read_prompt_files(root_path="./asset/prompts/"):
         "initial": initial_prompt,
         "illusion": illusion_prompt,
         "trial": trial_prompt,
+        "last try": last_try_prompt,
         "fail": fail_prompt,
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def input_user_text(text):
     return {

@@ -22,6 +22,30 @@ def print_prompt(pdf_arg: PDFArg, conn):
 
     conn.printFile(printer, filename, title, options)
 
+def print_success(pdf_arg: PDFArg, conn):
+    printer = "Canon_iP100_series"
+    filename = "./asset/success.pdf"
+    title = "tmp"
+    options = {
+        "PageSize": "Custom.105x140mm",
+        "fit-to-page": "true",
+        "CNIJGrayScale": "1"
+    }
+
+    conn.printFile(printer, filename, title, options)
+
+def print_fail(pdf_arg: PDFArg, conn):
+    printer = "Canon_iP100_series"
+    filename = "./asset/fail.pdf"
+    title = "tmp"
+    options = {
+        "PageSize": "Custom.105x140mm",
+        "fit-to-page": "true",
+        "CNIJGrayScale": "1"
+    }
+
+    conn.printFile(printer, filename, title, options)
+
 def get_pdf(arg: PDFArg):
     current_trial = 1
 
