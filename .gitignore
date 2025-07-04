@@ -1,6 +1,6 @@
 .DS_Store
-tmp/
+tmp/*
 !tmp/.gitkeep
-imgs/
+imgs/*
 !imgs/.gitkeep
 __pycache__ 
