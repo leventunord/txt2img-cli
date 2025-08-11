@@ -16,6 +16,12 @@ class Client:
             "role": "system", # TODO: maybe developer
             "content": self.prompts["system"] 
         }]
+
+    def reset_history(self):
+        self.history = [{
+            "role": "system",
+            "content": self.prompts["system"] 
+        }]
         
     def get_response(self, input, temperature=1.0):
         self.history.append(input)
