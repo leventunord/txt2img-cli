@@ -25,7 +25,7 @@ class Serial:
                 data = self.ser.readline()
                 print(data.decode('utf-8').strip())
 
-                time.sleep(1) # time sleep for paper goes into scanner
+                time.sleep(3) # time sleep for paper goes into scanner
                 return True
 
     def send_data(self, string):
