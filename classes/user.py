@@ -25,25 +25,33 @@ class User:
         self.trial += 1
 
     def start(self, max_trial=4):
+        # Open serial
+        ser = Serial("/dev/tty.usbserial-2140")
+
         # Round 1: get initial hints
         self.single_round(self.client.get_initial)
-        input("scan?")
+        
+        if ser.start_listening():
+            image_path = f"./imgs/{scan()}"
 
         # Round 2: start illusion
-        self.single_round(lambda : self.client.get_illusion(f"./imgs/{scan()}"))
-        input("scan?")
+        self.single_round(lambda : self.client.get_illusion(image_path))
+
+        if ser.start_listening():
+            image_path = f"./imgs/{scan()}"
 
         while (not self.is_satisfied) and (self.trial < max_trial):
-            self.single_round(lambda : self.client.get_feedback(f"./imgs/{scan()}"))
-            input("scan?")
+            self.single_round(lambda : self.client.get_feedback(image_path))
+            if ser.start_listening():
+                image_path = f"./imgs/{scan()}"
 
         # Last Round
-        self.single_round(lambda : self.client.get_last_try(f"./imgs/{scan()}"))
-        input("scan?")
+        self.single_round(lambda : self.client.get_last_try(image_path))
+        if ser.start_listening():
+            image_path = f"./imgs/{scan()}"
 
         # Fail or Success
-        # self.single_round(lambda : self.client.get_fail(f"./imgs/{scan()}"))
-        fed = parse_feedback(self.client.get_fail(f"./imgs/{scan()}"))
+        fed = parse_feedback(self.client.get_fail(image_path))
         print(fed["detail"])
         self.is_satisfied = fed["is_satisfied"]
 
