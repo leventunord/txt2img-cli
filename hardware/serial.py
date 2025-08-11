@@ -20,12 +20,13 @@ class Serial:
         )
 
     def start_listening(self):
-        if self.ser.in_waiting:
-            data = self.ser.readline()
-            print(data.decode('utf-8').strip())
+        while True:
+            if self.ser.in_waiting:
+                data = self.ser.readline()
+                print(data.decode('utf-8').strip())
 
-            time.sleep(1) # time sleep for paper goes into scanner
-            return True
+                time.sleep(1) # time sleep for paper goes into scanner
+                return True
 
     def send_data(self, string):
         self.ser.write(string.encode('utf-8'))
