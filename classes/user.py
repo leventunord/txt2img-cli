@@ -28,27 +28,28 @@ class User:
         # Open serial
         ser = Serial("/dev/tty.usbseria1-0001")
 
+        # Initialize image_path
+        image_path = "./imgs/scan_20250704_224352.png"
+
         # Round 1: get initial hints
         self.single_round(self.client.get_initial)
 
-        image_path = "./imgs/scan_20250704_224352.png"
-        
         if ser.start_listening():
             image_path = f"./imgs/{scan()}"
 
         # Round 2: start illusion
-        self.single_round(lambda : self.client.get_illusion(image_path))
+        self.single_round(lambda: self.client.get_illusion(image_path))
 
         if ser.start_listening():
             image_path = f"./imgs/{scan()}"
 
         while (not self.is_satisfied) and (self.trial < max_trial):
-            self.single_round(lambda : self.client.get_feedback(image_path))
+            self.single_round(lambda: self.client.get_feedback(image_path))
             if ser.start_listening():
                 image_path = f"./imgs/{scan()}"
 
         # Last Round
-        self.single_round(lambda : self.client.get_last_try(image_path))
+        self.single_round(lambda: self.client.get_last_try(image_path))
         if ser.start_listening():
             image_path = f"./imgs/{scan()}"
 
