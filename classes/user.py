@@ -30,6 +30,8 @@ class User:
 
         # Round 1: get initial hints
         self.single_round(self.client.get_initial)
+
+        image_path = "./imgs/scan_20250704_224352.png"
         
         if ser.start_listening():
             image_path = f"./imgs/{scan()}"
