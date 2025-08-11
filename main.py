@@ -5,7 +5,8 @@ from classes import *
 
 def main():
 
-    conn = cups.Connection()
+    # conn = cups.Connection()
+    conn = None
 
     client = Client()
     user = User(conn, client)

@@ -13,7 +13,7 @@ class Client:
         self.client = OpenAI()
         self.prompts = read_prompt_files()
         self.history = [{
-            "role": "system", # TODO: maybe developer
+            "role": "system", 
             "content": self.prompts["system"] 
         }]
         
@@ -25,7 +25,7 @@ class Client:
             input=self.history,
             text_format=Feedback,
             store=False,
-            # temperature=temperature
+            temperature=temperature
         )
 
         self.history += [{"role": el.role, "content": el.content} for el in response.output]

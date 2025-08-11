@@ -1,6 +1,6 @@
 import uuid
 import json
-from hardware import *
+# from hardware import *
 
 class User:
     def __init__(self, conn, client):
@@ -16,7 +16,12 @@ class User:
         self.current_drawing = None
 
     def print(self, prompt_list):
-        print_prompt(PDFArg(prompt_list, self.short_id, self.trial), self.conn)
+        """
+        prompt_list: array[3]
+        """
+        # print_prompt(PDFArg(prompt_list, self.short_id, self.trial), self.conn)
+        print(prompt_list)
+
 
     def single_round(self, get):
         fed = parse_feedback(get())
@@ -27,30 +32,32 @@ class User:
     def start(self, max_trial=4):
         # Round 1: get initial hints
         self.single_round(self.client.get_initial)
-        input("scan?")
+        image_path = input("scan?")
 
         # Round 2: start illusion
-        self.single_round(lambda : self.client.get_illusion(f"./imgs/{scan()}"))
-        input("scan?")
+        self.single_round(lambda : self.client.get_illusion(f"./imgs/{image_path}"))
+        image_path = input("scan?")
 
         while (not self.is_satisfied) and (self.trial < max_trial):
-            self.single_round(lambda : self.client.get_feedback(f"./imgs/{scan()}"))
-            input("scan?")
+            self.single_round(lambda : self.client.get_feedback(f"./imgs/{image_path}"))
+            image_path = input("scan?")
 
         # Last Round
-        self.single_round(lambda : self.client.get_last_try(f"./imgs/{scan()}"))
-        input("scan?")
+        self.single_round(lambda : self.client.get_last_try(f"./imgs/{image_path}"))
+        image_path = input("scan?")
 
         # Fail or Success
-        # self.single_round(lambda : self.client.get_fail(f"./imgs/{scan()}"))
-        fed = parse_feedback(self.client.get_fail(f"./imgs/{scan()}"))
+        # self.single_round(lambda : self.client.get_fail(f"./imgs/{image_path}"))
+        fed = parse_feedback(self.client.get_fail(f"./imgs/{image_path}"))
         print(fed["detail"])
         self.is_satisfied = fed["is_satisfied"]
 
         if self.is_satisfied:
-            print_success(PDFArg([], self.short_id, self.trial), self.conn)
+            # print_success(PDFArg([], self.short_id, self.trial), self.conn)
+            print("success")
         else:
-            print_fail(PDFArg([], self.short_id, self.trial), self.conn)
+            # print_fail(PDFArg([], self.short_id, self.trial), self.conn)
+            print("fail")
 
         
 def parse_feedback(feedback):
