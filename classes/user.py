@@ -26,7 +26,7 @@ class User:
 
     def start(self, max_trial=4):
         # Open serial
-        ser = Serial("/dev/tty.usbserial-2140")
+        ser = Serial("/dev/tty.usbseria1-0001")
 
         # Round 1: get initial hints
         self.single_round(self.client.get_initial)
