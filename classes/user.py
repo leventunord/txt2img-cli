@@ -25,21 +25,27 @@ class User:
 
     def single_round(self, get):
         fed = parse_feedback(get())
+        self.is_satisfied = fed["is_satisfied"]
         print(fed["detail"])
         self.print(fed["feedback"])
         self.trial += 1
 
     def start(self, max_trial=4):
         # Round 1: get initial hints
-        self.single_round(self.client.get_initial)
+        # self.single_round(self.client.get_initial)
+        fed = parse_feedback(self.client.get_initial())
+        target_vision = fed["detail"]
+        print(target_vision)
+        self.print(fed["feedback"])
+        self.trial += 1
         image_path = input("scan?")
 
-        # Round 2: start illusion
-        self.single_round(lambda : self.client.get_illusion(f"./imgs/{image_path}"))
-        image_path = input("scan?")
+        # # Round 2: start illusion
+        # self.single_round(lambda : self.client.get_illusion(f"./imgs/{image_path}"))
+        # image_path = input("scan?")
 
         while (not self.is_satisfied) and (self.trial < max_trial):
-            self.single_round(lambda : self.client.get_feedback(f"./imgs/{image_path}"))
+            self.single_round(lambda : self.client.get_feedback(f"./imgs/{image_path}", target_vision))
             image_path = input("scan?")
 
         # Last Round

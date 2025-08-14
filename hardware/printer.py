@@ -52,7 +52,7 @@ def get_pdf(arg: PDFArg):
     date = datetime.now().strftime("%a %b %d %H:%M:%S %Y")
     location = "Shanghai China"
     model = f"Model: Human #{arg.human_id}"
-    trial = f"Trail: 0{arg.trial}"
+    trial = f"Trial: 0{arg.trial}"
 
     pdf_filepath = "./tmp/temp.pdf"
 
