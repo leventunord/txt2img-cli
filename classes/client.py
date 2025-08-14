@@ -1,6 +1,7 @@
 from openai import OpenAI
 from pydantic import BaseModel
 import base64
+import random
 
 class Feedback(BaseModel):
     detail: str
@@ -13,7 +14,7 @@ class Client:
         self.client = OpenAI()
         self.prompts = read_prompt_files()
         self.history = [{
-            "role": "system", # TODO: maybe developer
+            "role": "system", 
             "content": self.prompts["system"] 
         }]
         
@@ -33,27 +34,41 @@ class Client:
         
 
     def get_initial(self):
-        return self.get_response(input_user_text(self.prompts["initial"]), temperature=1.5)
+        return self.get_response(input_user_text(self.prompts["initial"].replace("EMOTIONS_PALCEHOLDER", self.random_emotion())))
 
-    def get_illusion(self, image_path):
-        return self.get_response(input_user_text_image(self.prompts["illusion"], image_path))
+    # def get_illusion(self, image_path):
+    #     return self.get_response(input_user_text_image(self.prompts["illusion"], image_path))
 
-    def get_feedback(self, image_path):
-        return self.get_response(input_user_text_image(self.prompts["trial"], image_path))
+    def get_feedback(self, image_path, target_vision):
+        """
+        target_vision: str
+        """
+        return self.get_response(input_user_text_image(self.prompts["trial"].replace("SCENE_PLACEHOLDER", target_vision), image_path))
 
-    def get_last_try(self, image_path):
-        return self.get_response(input_user_text_image(self.prompts["last try"], image_path))
+    def get_last_try(self, image_path, target_vision):
+        return self.get_response(input_user_text_image(self.prompts["last try"].replace("SCENE_PLACEHOLDER", target_vision), image_path))
 
-    def get_fail(self, image_path):
-        return self.get_response(input_user_text_image(self.prompts["fail"], image_path))
+    def get_fail(self, image_path, target_vision):
+        return self.get_response(input_user_text_image(self.prompts["fail"].replace("SCENE_PLACEHOLDER", target_vision), image_path))
+
+    def random_emotion(self):
+        emotions = [
+            "admiration", "adoration", "amusement", "anger", "anxiety", "awe", "awkwardness",
+            "boredom", "calmness", "confusion", "craving", "disgust", "entrancement", "excitement",
+            "fear", "horror", "interest", "joy", "nostalgia", "relief", "romance", "sadness", "satisfaction", "surprise"
+        ]
+
+        random.shuffle(emotions)
+
+        return f"{emotions[0]}, {emotions[1]}, {emotions[2]}."
 
 
 def read_prompt_files(root_path="./asset/prompts/"):
     with open(f"{root_path}system.txt", "r", encoding="utf-8") as system_prompt_file:
         system_prompt = system_prompt_file.read()
 
-    with open(f"{root_path}illusion.txt", "r", encoding="utf-8") as illusion_prompt_file:
-        illusion_prompt = illusion_prompt_file.read()
+    # with open(f"{root_path}illusion.txt", "r", encoding="utf-8") as illusion_prompt_file:
+    #     illusion_prompt = illusion_prompt_file.read()
 
     with open(f"{root_path}initial.txt", "r", encoding="utf-8") as initial_prompt_file:
         initial_prompt = initial_prompt_file.read()
@@ -70,7 +85,7 @@ def read_prompt_files(root_path="./asset/prompts/"):
     return {
         "system": system_prompt,
         "initial": initial_prompt,
-        "illusion": illusion_prompt,
+        # "illusion": illusion_prompt,
         "trial": trial_prompt,
         "last try": last_try_prompt,
         "fail": fail_prompt,

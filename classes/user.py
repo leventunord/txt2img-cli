@@ -20,6 +20,7 @@ class User:
 
     def single_round(self, get):
         fed = parse_feedback(get())
+        self.is_satisfied = fed["is_satisfied"]
         print(fed["detail"])
         self.print(fed["feedback"])
         self.trial += 1
@@ -29,32 +30,36 @@ class User:
         ser = Serial("/dev/tty.usbseria1-0001")
 
         # Initialize image_path
-        image_path = "./imgs/scan_20250704_224352.png"
+        image_path = ""
 
         # Round 1: get initial hints
-        self.single_round(self.client.get_initial)
+        # self.single_round(self.client.get_initial)
+        initial_fed = parse_feedback(self.client.get_initial())
+        target_vision = initial_fed["detail"]
+        self.print(initial_fed["feedback"])
+        self.trial += 1
 
         if ser.start_listening():
             image_path = f"./imgs/{scan()}"
 
-        # Round 2: start illusion
-        self.single_round(lambda: self.client.get_illusion(image_path))
+        # # Round 2: start illusion
+        # self.single_round(lambda: self.client.get_illusion(image_path))
 
-        if ser.start_listening():
-            image_path = f"./imgs/{scan()}"
+        # if ser.start_listening():
+        #     image_path = f"./imgs/{scan()}"
 
         while (not self.is_satisfied) and (self.trial < max_trial):
-            self.single_round(lambda: self.client.get_feedback(image_path))
+            self.single_round(lambda: self.client.get_feedback(image_path, target_vision))
             if ser.start_listening():
                 image_path = f"./imgs/{scan()}"
 
         # Last Round
-        self.single_round(lambda: self.client.get_last_try(image_path))
+        self.single_round(lambda: self.client.get_last_try(image_path, target_vision))
         if ser.start_listening():
             image_path = f"./imgs/{scan()}"
 
         # Fail or Success
-        fed = parse_feedback(self.client.get_fail(image_path))
+        fed = parse_feedback(self.client.get_fail(image_path, target_vision))
         print(fed["detail"])
         self.is_satisfied = fed["is_satisfied"]
 
