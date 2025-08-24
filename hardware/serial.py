@@ -23,10 +23,12 @@ class Serial:
         while True:
             if self.ser.in_waiting:
                 data = self.ser.readline()
-                print(data.decode('utf-8').strip())
+                message = data.decode('utf-8').strip()
+                print(message)
 
-                time.sleep(3) # time sleep for paper goes into scanner
+                # time.sleep(3) # time sleep for paper goes into scanner
                 return True
+                # return message
 
     def send_data(self, string):
         self.ser.write(string.encode('utf-8'))
